@@ -1,8 +1,22 @@
 import Head from "next/head";
 import Image from "next/image";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 
 export default function Home() {
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const getProducts = async () => {
+      const queryResults = await fetch("/api/stripe").then((res) => res.json());
+      setProducts(queryResults.data);
+      setLoading(false);
+    };
+
+    getProducts();
+  }, []);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,7 +25,35 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <h1>Welcome to Thian Hooi&apos;s Learning Loop Submission</h1>
+      <main className={styles.main}>
+        <h1>Welcome to Thian Hooi&apos;s Learning Loop Submission</h1>
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <div className={styles.grid}>
+            {products.map((product, index) => {
+              const { line_items, url: paymentUrl, metadata } = product;
+              const { amount_total, currency, description } =
+                line_items.data[0];
+
+              return (
+                <a
+                  key={`product-${index}`}
+                  href={paymentUrl}
+                  className={styles.card}
+                >
+                  <h2>{description} &rarr;</h2>
+                  <h3>{metadata.description}</h3>
+                  <p>
+                    {currency.toUpperCase()} {(amount_total / 100).toFixed(2)}
+                  </p>
+                </a>
+              );
+            })}
+          </div>
+        )}
+      </main>
     </div>
   );
 }
