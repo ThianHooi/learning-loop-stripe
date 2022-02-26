@@ -1,17 +1,25 @@
 import Head from "next/head";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
+
 import styles from "../styles/Home.module.css";
+import handleFetchErrors from "../util/handleFetchError";
 
 export default function Home() {
+  const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const getProducts = async () => {
-      const queryResults = await fetch("/api/stripe").then((res) => res.json());
-      setProducts(queryResults.data);
-      setLoading(false);
+      fetch("/api/stripe")
+        .then(handleFetchErrors)
+        .then((res) => res.json())
+        .then((jsonRes) => {
+          setProducts(jsonRes.data);
+          setLoading(false);
+        })
+        .catch((err) => setError(err.message));
     };
 
     getProducts();
@@ -28,30 +36,40 @@ export default function Home() {
       <main className={styles.main}>
         <h1>Welcome to Thian Hooi&apos;s Learning Loop Submission</h1>
 
-        {loading ? (
-          <p>Loading...</p>
+        {error ? (
+          <>
+            <p className={styles.error}>{error}</p>
+            <p className={styles.error}>Try again later.</p>
+          </>
         ) : (
-          <div className={styles.grid}>
-            {products.map((product, index) => {
-              const { line_items, url: paymentUrl, metadata } = product;
-              const { amount_total, currency, description } =
-                line_items.data[0];
+          <>
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <div className={styles.grid}>
+                {products.map((product, index) => {
+                  const { line_items, url: paymentUrl, metadata } = product;
+                  const { amount_total, currency, description } =
+                    line_items.data[0];
 
-              return (
-                <a
-                  key={`product-${index}`}
-                  href={paymentUrl}
-                  className={styles.card}
-                >
-                  <h2>{description} &rarr;</h2>
-                  <h3>{metadata.description}</h3>
-                  <p>
-                    {currency.toUpperCase()} {(amount_total / 100).toFixed(2)}
-                  </p>
-                </a>
-              );
-            })}
-          </div>
+                  return (
+                    <a
+                      key={`product-${index}`}
+                      href={paymentUrl}
+                      className={styles.card}
+                    >
+                      <h2>{description} &rarr;</h2>
+                      <h3>{metadata.description}</h3>
+                      <p>
+                        {currency.toUpperCase()}{" "}
+                        {(amount_total / 100).toFixed(2)}
+                      </p>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
