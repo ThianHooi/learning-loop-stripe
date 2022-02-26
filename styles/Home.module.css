@@ -121,3 +121,10 @@ p.error {
   line-height: 1.5;
   color: red;
 }
+
+p.success {
+  font-weight: 500;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: green;
+}
