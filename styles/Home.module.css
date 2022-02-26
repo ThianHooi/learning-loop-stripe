@@ -114,3 +114,10 @@
     flex-direction: column;
   }
 }
+
+p.error {
+  font-weight: 500;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: red;
+}
