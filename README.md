@@ -4,6 +4,9 @@
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Live Demo 
+[thianhooistripe.vercel.app](https://thianhooistripe.vercel.app/)
+
 ## Getting Started
 
 1. Add [Stripe Publishable Key](https://stripe.com/docs/keys#obtain-api-keys) and [Stripe Secret Key](https://stripe.com/docs/keys#obtain-api-keys) into `.env`
