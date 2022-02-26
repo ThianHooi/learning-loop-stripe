@@ -9,8 +9,26 @@ export default function Home() {
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
+  const [paymentStatus, setPaymentStatus] = useState();
 
   useEffect(() => {
+    const checkStatus = () => {
+      const query = new URLSearchParams(window.location.search);
+      if (query.get("success")) {
+        setPaymentStatus({
+          status: "success",
+          message: "Order placed! Thank you! 🤗",
+        });
+      }
+
+      if (query.get("canceled")) {
+        setPaymentStatus({
+          status: "canceled",
+          message: "Order canceled 😭",
+        });
+      }
+    };
+
     const getProducts = async () => {
       fetch("/api/stripe")
         .then(handleFetchErrors)
@@ -22,6 +40,7 @@ export default function Home() {
         .catch((err) => setError(err.message));
     };
 
+    checkStatus();
     getProducts();
   }, []);
 
@@ -35,6 +54,16 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1>Welcome to Thian Hooi&apos;s Learning Loop Submission</h1>
+
+        {paymentStatus ? (
+          <p
+            className={
+              paymentStatus.status === "success" ? styles.success : styles.error
+            }
+          >
+            {paymentStatus.message}
+          </p>
+        ) : null}
 
         {error ? (
           <>
