@@ -1,8 +1,49 @@
 import Head from "next/head";
 import Image from "next/image";
+import React, { useState, useEffect } from "react";
+
 import styles from "../styles/Home.module.css";
+import handleFetchErrors from "../util/handleFetchError";
 
 export default function Home() {
+  const [error, setError] = useState();
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [paymentStatus, setPaymentStatus] = useState();
+
+  useEffect(() => {
+    const checkStatus = () => {
+      const query = new URLSearchParams(window.location.search);
+      if (query.get("success")) {
+        setPaymentStatus({
+          status: "success",
+          message: "Order placed! Thank you! 🤗",
+        });
+      }
+
+      if (query.get("canceled")) {
+        setPaymentStatus({
+          status: "canceled",
+          message: "Order canceled 😭",
+        });
+      }
+    };
+
+    const getProducts = async () => {
+      fetch("/api/stripe")
+        .then(handleFetchErrors)
+        .then((res) => res.json())
+        .then((jsonRes) => {
+          setProducts(jsonRes.data);
+          setLoading(false);
+        })
+        .catch((err) => setError(err.message));
+    };
+
+    checkStatus();
+    getProducts();
+  }, []);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,7 +52,55 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <h1>Welcome to Thian Hooi&apos;s Learning Loop Submission</h1>
+      <main className={styles.main}>
+        <h1>Welcome to Thian Hooi&apos;s Learning Loop Submission</h1>
+
+        {paymentStatus ? (
+          <p
+            className={
+              paymentStatus.status === "success" ? styles.success : styles.error
+            }
+          >
+            {paymentStatus.message}
+          </p>
+        ) : null}
+
+        {error ? (
+          <>
+            <p className={styles.error}>{error}</p>
+            <p className={styles.error}>Try again later.</p>
+          </>
+        ) : (
+          <>
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <div className={styles.grid}>
+                {products.map((product, index) => {
+                  const { line_items, url: paymentUrl, metadata } = product;
+                  const { amount_total, currency, description } =
+                    line_items.data[0];
+
+                  return (
+                    <a
+                      key={`product-${index}`}
+                      href={paymentUrl}
+                      className={styles.card}
+                    >
+                      <h2>{description} &rarr;</h2>
+                      <h3>{metadata.description}</h3>
+                      <p>
+                        {currency.toUpperCase()}{" "}
+                        {(amount_total / 100).toFixed(2)}
+                      </p>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </main>
     </div>
   );
 }
